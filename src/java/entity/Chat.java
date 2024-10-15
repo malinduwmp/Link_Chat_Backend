@@ -4,35 +4,38 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 @Entity
-@Table(name = "char")
+@Table(name = "chat")
 public class Chat implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private int id;
 
     @ManyToOne
-    @JoinColumn(name = "from_user_id")
+    @JoinColumn(name = "form_user_id")
     private User from_user;
 
     @ManyToOne
     @JoinColumn(name = "to_user_id")
     private User to_user;
 
-    @Column(name = " message", nullable = false)
-    private String message;
+    @Column(name = "massage", nullable = false)
+    private String massage;
 
     @Column(name = "date_time", nullable = false)
     private Date date_time;
 
     @ManyToOne
-    @JoinColumn(name = "chat_status")
+    @JoinColumn(name = "chat_status_id")
     private Chat_Status chat_Status;
 
     public Chat(){
@@ -83,14 +86,14 @@ public class Chat implements Serializable {
      * @return the message
      */
     public String getMessage() {
-        return message;
+        return massage;
     }
 
     /**
      * @param message the message to set
      */
     public void setMessage(String message) {
-        this.message = message;
+        this.massage = message;
     }
 
     /**

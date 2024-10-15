@@ -22,19 +22,19 @@ import java.util.Date;
 import javax.servlet.annotation.MultipartConfig;
 import model.HibernateUtil;
 import model.Validation;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
+import org.hibernate.criterion.Restrictions;
 
 /**
  *
  * @author user
  */
-
 @MultipartConfig(
-        fileSizeThreshold = 1024 * 1024, // 1 MB
-        maxFileSize = 1024 * 1024 * 5, // 5 MB
-        maxRequestSize = 1024 * 1024 * 10 // 10 MB
+    fileSizeThreshold = 1024 * 1024,  // 1 MB
+    maxFileSize = 1024 * 1024 * 15,   // 15 MB
+    maxRequestSize = 1024 * 1024 * 20 // 20 MB
 )
-
 @WebServlet(name = "SignUp", urlPatterns = {"/SignUp"})
 public class SignUp extends HttpServlet {
 
@@ -67,7 +67,7 @@ public class SignUp extends HttpServlet {
         } else if (password.isEmpty()) {
             //Password Name is empty
             responseJson.addProperty("message", "Please Add Your Password");
-        } else if ( !Validation.isPasswordValid(password)) {
+        } else if (!Validation.isPasswordValid(password)) {
             //password not valid 
             responseJson.addProperty("message", "Password must contain at least one"
                     + " lowercase letter, one uppercase letter, one digit, "
@@ -77,39 +77,48 @@ public class SignUp extends HttpServlet {
 
             Session session = HibernateUtil.getSessionFactory().openSession();
 
-            User user = new User();
-            user.setFirst_name(firstName);
-            user.setLast_name(lastName);
-            user.setMobile(mobile);
-            user.setPassword(password);
-            user.setRegisterd_date_time(new Date());
+            Criteria criteria1 = session.createCriteria(User.class);
+            criteria1.add(Restrictions.eq("mobile", mobile));
 
-            //Get User Status2 = Offilne
-            User_Status user_Status = (User_Status) session.get(User_Status.class, 2);
-            user.setUser_Status(user_Status);
+            if (!criteria1.list().isEmpty()) {
+//                mobile number is alrady used
+                   responseJson.addProperty("message", "Mobile number is alrady used");
+            } else {
+//                 Mobile number is not use
+                User user = new User();
+                user.setFirst_name(firstName);
+                user.setLast_name(lastName);
+                user.setMobile(mobile);
+                user.setPassword(password);
+                user.setRegisterd_date_time(new Date());
 
-            session.save(user);
-            session.beginTransaction().commit();
+                //Get User Status2 = Offilne
+                User_Status user_Status = (User_Status) session.get(User_Status.class, 2);
+                user.setUser_Status(user_Status);
 
-            //check uploaded image
-            if (avertarImage != null) {
-                //image selected
-                String serverPath = request.getServletContext().getRealPath("");
-                String aveatarImagePath = serverPath + File.separator + "AvatarImage" + File.separator + mobile + ".png";
-                File file = new File(aveatarImagePath);
-                Files.copy(avertarImage.getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                session.save(user);
+                session.beginTransaction().commit();
 
+                //check uploaded image
+                if (avertarImage != null) {
+                    //image selected
+                    String serverPath = request.getServletContext().getRealPath("");
+                    String aveatarImagePath = serverPath + File.separator + "AvatarImage" + File.separator + mobile + ".png";
+                    File file = new File(aveatarImagePath);
+                    Files.copy(avertarImage.getInputStream(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+                }
+
+                responseJson.addProperty("success", true);
+                responseJson.addProperty("message", "Registration Complete");
             }
-
-            responseJson.addProperty("success", true);
-            responseJson.addProperty("message", "Registration Complete");
 
             session.close();
         }
 
-        response.setContentType("applicat ion/json");
+        response.setContentType("application/json");
         response.getWriter().write(gson.toJson(responseJson));
 
     }
-
+    
 }
